@@ -1,0 +1,84 @@
+import tkinter as tk
+import sqlite3
+
+# Create a new database or connect to an existing one
+conn = sqlite3.connect('football_team_data.db')
+
+# Create a new table to store the team data
+conn.execute('''CREATE TABLE IF NOT EXISTS team_data
+             (id INTEGER PRIMARY KEY AUTOINCREMENT,
+              player_name TEXT,
+              player_age INTEGER,
+              player_position TEXT,
+              player_shirt INTEGER);''')
+
+# Define a function to save the data to the database
+def save_data():
+    # Get the values from the entry fields
+    name = name_entry.get()
+    age = int(age_entry.get())
+    position = position_var.get()
+    shirt = shirt_spinbox.get()
+    
+    # Insert the values into the database
+    conn.execute('INSERT INTO team_data (player_name, player_age, player_position, player_shirt) VALUES (?, ?, ?, ?)', (name, age, position, shirt))
+    conn.commit()
+    
+    # Clear the entry fields
+    name_entry.delete(0, tk.END)
+    age_entry.delete(0, tk.END)
+    shirt_spinbox.delete(0, tk.END)
+    
+    # Update the listbox with the new data
+    populate_listbox()
+
+# Define a function to populate the listbox with the team data
+def populate_listbox():
+    # Clear the listbox
+    listbox.delete(0, tk.END)
+    
+    # Retrieve the data from the database and add it to the listbox
+    cursor = conn.execute('SELECT * FROM team_data')
+    for row in cursor:
+        listbox.insert(tk.END, row)
+
+# Create the main window
+root = tk.Tk()
+root.title('Football Team Data')
+
+# Create the player name label and entry field
+name_label = tk.Label(root, text='Player Name:')
+name_label.grid(row=0, column=0, padx=5, pady=5)
+name_entry = tk.Entry(root)
+name_entry.grid(row=0, column=1, padx=5, pady=5)
+
+# Create the player age label and entry field
+age_label = tk.Label(root, text='Player Age:')
+age_label.grid(row=1, column=0, padx=5, pady=5)
+age_entry = tk.Entry(root)
+age_entry.grid(row=1, column=1, padx=5, pady=5)
+
+# Create the player position label and radio buttons
+position_label = tk.Label(root, text='Player Position:')
+position_label.grid(row=2, column=0, padx=5, pady=5)
+position_var = tk.StringVar()
+position_var.set('Forward')
+position_radio1 = tk.Radiobutton(root, text='Forward', variable=position_var, value='Forward')
+position_radio2 = tk.Radiobutton(root, text='Midfield', variable=position_var, value='Midfield')
+position_radio3 = tk.Radiobutton(root, text='Defence', variable=position_var, value='Defence')
+position_radio4 = tk.Radiobutton(root, text='Goalkeeper', variable=position_var, value='Goalkeeper')
+position_radio1.grid(row=2, column=1, padx=5, pady=5)
+position_radio2.grid(row=2, column=2, padx=5, pady=5)
+position_radio3.grid(row=3, column=1, padx=5, pady=5)
+position_radio4.grid(row=3, column=2, padx=5, pady=5)
+shirt_label = tk.Label(root, text='Shirt Number:')
+shirt_label.grid(row=4, column=0, padx=5, pady=5)
+shirt_spinbox = tk.Spinbox(root, from_=1, to=99)
+shirt_spinbox.grid(row=4, column=1, padx=5, pady=5)
+save_button = tk.Button(root, text='Save Data', command=save_data)
+save_button.grid(row=5, column=1, padx=5, pady=5)
+listbox = tk.Listbox(root)
+listbox.grid(row=6, column=0, columnspan=3, padx=5, pady=5)
+populate_listbox()
+
+root.mainloop()
